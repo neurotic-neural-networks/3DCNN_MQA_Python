@@ -16,6 +16,7 @@ weight_decay = 0.0,
 coef_L1 = 0.00001
 
 
+
 model = Sequential()
 
 model.add(Conv3D(16, input_shape =(120,120,120,11), data_format='channels_last'), kernel_size=(3,3,3))
