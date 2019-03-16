@@ -19,52 +19,53 @@ coef_L1 = 0.00001
 
 model = Sequential()
 
-model.add(Conv3D(16, input_shape =(120,120,120,11), data_format='channels_last'), kernel_size=(3,3,3))
+model.add(Conv3D(16, input_shape=(120,120,120,11), data_format='channels_last', kernel_size=(3,3,3)))
 model.add(Activation('relu'))
 model.add(MaxPooling3D(pool_size=(3,3,3), strides=(2,2,2)))
 
-model.add(Conv3D(16, kernel_size=(3,3,3)))
-model.add(BatchNormalization())
-model.add(Activation('relu'))
-model.add(MaxPooling3D(pool_size=(3,3,3), strides=(2,2,2)))
-
-model.add(Conv3D(32), kernel_size=(3,3,3))
-model.add(BatchNormalization())
-model.add(Activation('relu'))
-
-model.add(Conv3D(32), kernel_size=(3,3,3))
+model.add(Conv3D(32, kernel_size=(3,3,3)))
 model.add(BatchNormalization())
 model.add(Activation('relu'))
 model.add(MaxPooling3D(pool_size=(3,3,3), strides=(2,2,2)))
 
-model.add(Conv3D(64), kernel_size=(3,3,3))
+model.add(Conv3D(32, kernel_size=(3,3,3)))
 model.add(BatchNormalization())
 model.add(Activation('relu'))
 
-model.add(Conv3D(128), kernel_size=(3,3,3))
+model.add(Conv3D(64, kernel_size=(3,3,3)))
+model.add(BatchNormalization())
+model.add(Activation('relu'))
+model.add(MaxPooling3D(pool_size=(3,3,3), strides=(2,2,2)))
+
+model.add(Conv3D(128, kernel_size=(3,3,3)))
 model.add(BatchNormalization())
 model.add(Activation('relu'))
 
-model.add(Conv3D(128), kernel_size=(3,3,3))
+model.add(Conv3D(128, kernel_size=(3,3,3)))
 model.add(BatchNormalization())
 model.add(Activation('relu'))
 
-model.add(Conv3D(256), kernel_size=(3,3,3))
+model.add(Conv3D(256, kernel_size=(3,3,3)))
+model.add(BatchNormalization())
+model.add(Activation('relu'))
+
+model.add(Conv3D(512, kernel_size=(3,3,3)))
 model.add(BatchNormalization())
 model.add(Activation('relu'))
 model.add(MaxPooling3D(pool_size=(3,3,3), strides=(2,2,2)))
 
 model.add(Flatten())
 
-model.add(Dense(512))
-model.add(Activation('relu'))
+#The input is already 512, thus we reduce it to 256
 model.add(Dense(256))
+model.add(Activation('relu'))
+model.add(Dense(128))
 model.add(Activation('relu'))
 
 model.add(Dense(1))
 
 model.compile(
-    optimizer=keras.optimizer.Adam(
+    optimizer=keras.optimizers.Adam(
         lr=learning_rate,
         beta_1=beta1,
         beta_2=beta2,
