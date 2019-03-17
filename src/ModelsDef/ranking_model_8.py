@@ -1,9 +1,9 @@
 import keras
 from keras.models import Sequential
 from keras.layers import Dense, Conv3D, MaxPooling3D, BatchNormalization, Activation, Flatten
-from keras.regularizers import l1
+#from keras.regularizers import l1
 
-import Library.LossFunctions.batchRankingLoss as brLoss
+from batchRankingLoss import brLoss
 
 batch_size = 9,
 max_epoch = 50,
@@ -11,9 +11,9 @@ beta1 = 0.9,
 beta2 = 0.999,
 epsilon = 1E-8,
 learning_rate = 0.0001,
-learning_rate_decay = 0.0,
 weight_decay = 0.0,
-coef_L1 = 0.00001
+#learning_rate_decay = 0.0,
+#coef_L1 = 0.00001
 
 
 
@@ -57,11 +57,11 @@ model.add(MaxPooling3D(pool_size=(3,3,3), strides=(2,2,2)))
 model.add(Flatten())
 
 #The input is already 512, thus we reduce it to 256
+#This is the 3 fully connected layers
 model.add(Dense(256))
 model.add(Activation('relu'))
 model.add(Dense(128))
 model.add(Activation('relu'))
-
 model.add(Dense(1))
 
 model.compile(
@@ -71,12 +71,12 @@ model.compile(
         beta_2=beta2,
         epsilon=epsilon,
         decay=weight_decay),
-    loss=brLoss
+    loss=brLoss(batch_size)
 )
 
-# model.fit(
-#     epochs=50,
-#     batch_size=batch_size
-# )
+model.fit(
+    epochs=50,
+    batch_size=batch_size
+)
 
 model.summary()
