@@ -4,7 +4,7 @@ def brLoss(batch):
     
     def greaterThanApprox(x, y):
         epsilon = 1E-8
-        abse = np.sqrt((x - y)**2 + epsilon)
+        abse = K.tf.sqrt((x - y)**2 + epsilon)
         return 0.5 * (x + y + abse)
 
     def piecewiseFunction1(x, y):
@@ -18,7 +18,7 @@ def brLoss(batch):
         same = x - y
         sameFactor = (same / (same + epsilon))
 
-        value = np.abs(check) / check 
+        value = K.tf.abs(check) / check 
         value -= (2 * (sameFactor - 1))
 
         return value
@@ -34,7 +34,7 @@ def brLoss(batch):
         same = x - y
         sameFactor = same / (same + epsilon)
 
-        value = (check - np.abs(check)) / ((check - np.abs(check)) + epsilon)
+        value = (check - K.tf.abs(check)) / ((check - K.tf.abs(check)) + epsilon)
         value *= sameFactor
 
         return value
