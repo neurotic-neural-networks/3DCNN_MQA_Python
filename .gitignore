@@ -1,2 +1,4 @@
 .vscode/*
 .vscode
+.ModelsDef/__pycache__
+.ModelsDef/__pycache__/*
