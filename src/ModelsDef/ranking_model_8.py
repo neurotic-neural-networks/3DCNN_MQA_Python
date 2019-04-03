@@ -1,20 +1,22 @@
 import keras
 from keras.models import Sequential
 from keras.layers import Dense, Conv3D, MaxPooling3D, BatchNormalization, Activation, Flatten
-#from keras.regularizers import l1
 
 from batchRankingLoss import brLoss
+from dataGenerator import generateData
 
-batch_size = 9,
-max_epoch = 50,
-beta1 = 0.9,
-beta2 = 0.999,
-epsilon = 1E-8,
-learning_rate = 0.0001,
-weight_decay = 0.0,
-#learning_rate_decay = 0.0,
+batch_size = 1
+max_epoch = 50
+beta1 = 0.9
+beta2 = 0.999
+epsilon = 1E-8
+learning_rate = 0.0001
+weight_decay = 0.0
+epochs = 1
+#learning_rate_decay = 0.0
 #coef_L1 = 0.00001
 
+(x_train, y_train), (x_test, y_test) = generateData()
 
 
 model = Sequential()
@@ -64,6 +66,8 @@ model.add(Dense(128))
 model.add(Activation('relu'))
 model.add(Dense(1))
 
+model.summary()
+
 model.compile(
     optimizer=keras.optimizers.Adam(
         lr=learning_rate,
@@ -71,12 +75,12 @@ model.compile(
         beta_2=beta2,
         epsilon=epsilon,
         decay=weight_decay),
-    loss=brLoss(batch_size)
+    loss=brLoss(batch_size),
+    metrics=["acc"]
 )
 
-model.fit(
-    epochs=50,
-    batch_size=batch_size
+model.fit(x_train, y_train,
+    epochs=epochs,
+    batch_size=batch_size,
+    validation_data=(x_test, y_test)
 )
-
-model.summary()
