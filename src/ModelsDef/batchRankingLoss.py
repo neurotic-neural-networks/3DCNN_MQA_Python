@@ -41,21 +41,31 @@ def brLoss(batch):
     
     def batchRankingLoss(y_true, y_pred):
         """ Final loss calculation function to be passed to optimizer"""
-        L = y_pred[0,0] * 0.0
+        L = y_pred[0] * 0.0
         #y_true = K.tf.reshape(y_true, [-1])
         #y_pred = K.tf.reshape(y_pred, [-1])
+
+        # #Gets us the batch size of current run
+        # temp = K.tf.Variable(K.tf.zeros(batch, dtype=K.tf.float32))
+        # batch_size = temp[:K.int_shape(y_true)[0]]
+        
+        # i = K.tf.constant(0)
+        # def cond(i, ii):
+        #     return K.tf.less(i, ii)
+
+        # #L = K.tf.while_loop(cond, body, [batch_size, L])
 
         for i in range(batch):
             for j in range(batch):
                 if i != j:
                     
                     #y_ij = K.tf.cond(K.tf.greater(y_true[i], y_true[j]), lambda: K.tf.constant(-1.0), lambda: K.tf.constant(1.0))
-                    y_ij = piecewiseFunction1(y_true[i,0], y_true[j,0])
+                    y_ij = piecewiseFunction1(y_true[i], y_true[j])
 
                     #w_ij = K.tf.cond(K.tf.greater(K.tf.abs(y_true[i] - y_true[j]), K.tf.constant(0.1)), lambda: K.tf.constant(1.0), lambda: K.tf.constant(0.0))
-                    w_ij = piecewiseFunction2(K.tf.abs(y_true[i,0] - y_true[j,0]), K.tf.constant(0.1))
+                    w_ij = piecewiseFunction2(K.tf.abs(y_true[i] - y_true[j]), K.tf.constant(0.1))
 
-                    L_ij = w_ij * (K.tf.reduce_max(K.tf.stack([0.0, (1.0 - y_ij) * (y_pred[i,0] - y_pred[j,0])])))
+                    L_ij = w_ij * (K.tf.reduce_max(K.tf.concat([[0.0], (1.0 - y_ij) * (y_pred[i] - y_pred[j])], axis=0)))
                     #print(L_ij.shape)
                     L += L_ij
 
