@@ -1,6 +1,6 @@
 import keras.backend as K
 
-def evaluationLoss(y_true, y_pred):
+def evalLoss(y_true, y_pred):
 
     GDT_TSmax = K.tf.reduce_max(y_true, axis=-1)
     scoreMin = K.tf.argmin(y_pred, axis=-1)
