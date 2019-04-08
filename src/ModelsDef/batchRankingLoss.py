@@ -1,6 +1,6 @@
 from keras import backend as K
 
-def brLoss(batch):
+def brLoss(atom_types):
     
     def greaterThanApprox(x, y):
         epsilon = 1E-8
@@ -41,7 +41,7 @@ def brLoss(batch):
     
     def batchRankingLoss(y_true, y_pred):
         """ Final loss calculation function to be passed to optimizer"""
-        L = y_pred[0] * 0.0
+        L = y_pred[:,0] * 0.0
         #y_true = K.tf.reshape(y_true, [-1])
         #y_pred = K.tf.reshape(y_pred, [-1])
 
@@ -55,20 +55,20 @@ def brLoss(batch):
 
         # #L = K.tf.while_loop(cond, body, [batch_size, L])
 
-        for i in range(batch):
-            for j in range(batch):
+        for i in range(atom_types):
+            for j in range(atom_types):
                 if i != j:
                     
                     #y_ij = K.tf.cond(K.tf.greater(y_true[i], y_true[j]), lambda: K.tf.constant(-1.0), lambda: K.tf.constant(1.0))
-                    y_ij = piecewiseFunction1(y_true[i], y_true[j])
+                    y_ij = piecewiseFunction1(y_true[:,i], y_true[:,j])
 
                     #w_ij = K.tf.cond(K.tf.greater(K.tf.abs(y_true[i] - y_true[j]), K.tf.constant(0.1)), lambda: K.tf.constant(1.0), lambda: K.tf.constant(0.0))
-                    w_ij = piecewiseFunction2(K.tf.abs(y_true[i] - y_true[j]), K.tf.constant(0.1))
+                    w_ij = piecewiseFunction2(K.tf.abs(y_true[:,i] - y_true[:,j]), K.tf.constant(0.1))
 
-                    L_ij = w_ij * (K.tf.reduce_max(K.tf.concat([[0.0], (1.0 - y_ij) * (y_pred[i] - y_pred[j])], axis=0)))
+                    L_ij = w_ij * (K.tf.reduce_max(K.tf.concat([[0.0], (1.0 - y_ij) * (y_pred[:,i] - y_pred[:,j])], axis=0)))
                     #print(L_ij.shape)
                     L += L_ij
 
-        return K.tf.multiply(1.0/(batch*batch), K.tf.reduce_sum(L))
+        return K.tf.multiply(1.0/(atom_types*atom_types), K.tf.reduce_sum(L))
 
     return batchRankingLoss
