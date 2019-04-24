@@ -1,9 +1,12 @@
-import keras
-from keras.models import Sequential
-from keras.layers import Dense, Conv3D, MaxPooling3D, BatchNormalization, Activation, Flatten
+from __future__ import absolute_import, division, print_function, unicode_literals
+
+import tensorflow as tf
+from tensorflow.keras import Sequential
+from tensorflow.keras.layers import Dense, Conv3D, MaxPooling3D, BatchNormalization, Activation, Flatten
 
 from batchRankingLoss import brLoss
 from evaluationMetric import evalLoss
+from statisticsCoefficients import Pearson, Spearman, Kendall
 from dataGenerator import generateData
 
 import numpy as np
@@ -19,6 +22,7 @@ weight_decay = 0.0
 epochs = 10
 
 (x_train, y_train), (x_test, y_test) = generateData()
+print(x_train.shape, y_train.shape)
 
 
 model = Sequential()
@@ -50,21 +54,20 @@ model.add(Flatten())
 
 model.add(Dense(64))
 model.add(Activation('relu'))
-model.add(Dense(11))
-model.add(Activation("sigmoid"))
+model.add(Dense(1))
 
 model.summary()
 
 
 model.compile(
-    optimizer=keras.optimizers.Adam(
+    optimizer= tf.keras.optimizers.Adam(
         lr=learning_rate,
         beta_1=beta1,
         beta_2=beta2,
         epsilon=epsilon,
         decay=weight_decay),
-    loss=brLoss(decoys),
-    metrics=[evalLoss]
+    loss=brLoss(batch_size),
+    metrics=[evalLoss, Pearson, Spearman, Kendall]
 )
 
 model.fit(x_train, y_train,
@@ -122,5 +125,5 @@ model.add(Dense(256))
 model.add(Activation('relu'))
 model.add(Dense(128))
 model.add(Activation('relu'))
-model.add(Dense(11))
+model.add(Dense(1))
 '''
