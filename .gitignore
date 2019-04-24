@@ -1,4 +1,7 @@
-.vscode/*
-.vscode
-.ModelsDef/__pycache__
-.ModelsDef/__pycache__/*
+vscode/*
+vscode/*.json
+src/ModelsDef/__pycache__
+src/ModelsDef/__pycache__/*
+src/ModelsDef/__pycache__/*.pyc
+src/ModelsDef/*.pyc
+
