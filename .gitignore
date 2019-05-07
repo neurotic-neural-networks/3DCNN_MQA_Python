@@ -1,0 +1,14 @@
+src/ModelsDef/CASP11Stage1_SCWRL
+src/ModelsDef/CASP11Stage1_SCWRL/*
+
+src/ModelsDef/__pychache
+src/ModelsDef/CASP11Stage1_SCWRL
+src/ModelsDef/CASP11Stage1_SCWRL/*
+
+src/ModelsDef/*.json
+src/ModelsDef/*.pickle
+src/ModelsDef/*.hdf5
+
+.vscode
+
+*.pyc
