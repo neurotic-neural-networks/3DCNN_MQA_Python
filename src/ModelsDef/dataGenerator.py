@@ -7,7 +7,7 @@ def generateData():
     width = 20
     height = 20
     depth = 20
-    decoys = 11
+    decoys = 12
 
     
     xHigh = np.random.random((proteins,width,height,depth,decoys)) * 10000

@@ -5,11 +5,12 @@ from keras.layers import Dense, Conv3D, MaxPooling3D, BatchNormalization, Activa
 from batchRankingLoss import brLoss
 from evaluationMetric import evalLoss
 from dataGenerator import generateData
+from dataParser import loadData
 
 import numpy as np
 
 batch_size = 9
-decoys = 11
+decoys = 1
 max_epoch = 50
 beta1 = 0.9
 beta2 = 0.999
@@ -18,13 +19,13 @@ learning_rate = 0.0001
 weight_decay = 0.0
 epochs = 10
 
-(x_train, y_train), (x_test, y_test) = generateData()
-
+#(x_train, y_train), (x_test, y_test) = generateData()
+(x_train, y_train), (x_test, y_test) = loadData()
 
 model = Sequential()
 
 #Custom model for loss testing
-model.add(Conv3D(16, input_shape=(20,20,20,11), data_format='channels_last', kernel_size=(3,3,3)))
+model.add(Conv3D(16, input_shape=(20,20,20,12), data_format='channels_last', kernel_size=(3,3,3)))
 model.add(Activation('relu'))
 model.add(MaxPooling3D(pool_size=(3,3,3), strides=(2,2,2)))
 
@@ -50,7 +51,7 @@ model.add(Flatten())
 
 model.add(Dense(64))
 model.add(Activation('relu'))
-model.add(Dense(11))
+model.add(Dense(12))
 model.add(Activation("sigmoid"))
 
 model.summary()
@@ -73,7 +74,7 @@ model.fit(x_train, y_train,
     validation_data=(x_test, y_test)
 )
 
-test = np.random.random((1,20,20,20,11))
+test = np.random.random((1,20,20,20,12))
 prediction = model.predict(test)
 print(prediction)
 
