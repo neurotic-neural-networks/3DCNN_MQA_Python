@@ -12,3 +12,4 @@ src/ModelsDef/*.hdf5
 .vscode
 
 *.pyc
+src/ModelsDef/tempCodeRunnerFile.py
