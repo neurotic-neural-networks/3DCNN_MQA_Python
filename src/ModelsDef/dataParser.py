@@ -46,7 +46,7 @@ class Protein:
         return self.resolution
 
     # Work In Progress. Eventually, this would create a (120,120,120,11) tensor and it's GDT_TS
-    def getData(self, score="tmscore", width=20, height=20, depth=20, layers=12):
+    def getData(self, score="gdt_ts", width=20, height=20, depth=20, layers=12):
         coords = []
         scores = []
         for decoy in self.decoys:
@@ -327,8 +327,10 @@ def loadData():
 
 if __name__ == "__main__":
     # Here we call our awesome parser :)
-    readAndStoreData("C:\\Users\\Owrn\\Documents\\gitRepos\\3DCNN_MQA_Python\\src\\ModelsDef\\CASP11Stage1_SCWRL")
+    #readAndStoreData("CASP11Stage1_SCWRL")
 
     # This is to test data loading from the pickle file
     proteins = pickle.load(open("all_protein_decoy_data.pickle", "rb", -1))
-    x = proteins[0].getData()
+    x,y = proteins[0].getData()
+    print(np.array(x).shape)
+    print(np.array(y).shape)
