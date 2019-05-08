@@ -25,7 +25,7 @@ epochs = 10
 model = Sequential()
 
 #Custom model for loss testing
-model.add(Conv3D(16, input_shape=(20,20,20,12), data_format='channels_last', kernel_size=(3,3,3)))
+model.add(Conv3D(16, input_shape=(20,20,20,11), data_format='channels_last', kernel_size=(3,3,3)))
 model.add(Activation('relu'))
 model.add(MaxPooling3D(pool_size=(3,3,3), strides=(2,2,2)))
 
@@ -51,11 +51,10 @@ model.add(Flatten())
 
 model.add(Dense(64))
 model.add(Activation('relu'))
-model.add(Dense(12))
+model.add(Dense(11))
 model.add(Activation("sigmoid"))
 
 model.summary()
-
 
 model.compile(
     optimizer=keras.optimizers.Adam(
@@ -68,13 +67,19 @@ model.compile(
     metrics=[evalLoss]
 )
 
+print(np.array(x_train).shape)
+print(np.array(y_train).shape)
+print(np.array(x_test).shape)
+print(np.array(y_test).shape)
+
 model.fit(x_train, y_train,
     epochs=epochs,
     batch_size=batch_size,
     validation_data=(x_test, y_test)
 )
 
-test = np.random.random((1,20,20,20,12))
+
+test = np.random.random((1,20,20,20,11))
 prediction = model.predict(test)
 print(prediction)
 

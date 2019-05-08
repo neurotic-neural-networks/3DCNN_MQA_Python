@@ -34,7 +34,6 @@ def beta_carbons(data):
     i = np.where(data[:,1] == 'CB')
     return i
 
-
 def aliphatic_res(data):
     '''
     Method returns indexes of atoms belonging to aliphatic amino acids.
