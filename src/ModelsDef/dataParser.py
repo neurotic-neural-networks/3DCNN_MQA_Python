@@ -46,14 +46,13 @@ class Protein:
         return self.resolution
 
     # Work In Progress. Eventually, this would create a (120,120,120,11) tensor and it's GDT_TS
-    def getData(self, score="gdt_ts", width=20, height=20, depth=20, layers=12):
+    def getData(self, score="gdt_ts", width=20, height=20, depth=20, layers=11):
         coords = []
         scores = []
         for decoy in self.decoys:
             scores.append(decoy[score])
             xyz = np.zeros((width, height, depth, layers))
             for atom in decoy["atoms"][0]:
-                #TODO Fix placement
                 xyz[int((atom["coordinates"][0])%xyz.shape[0]), int((atom["coordinates"][1])%xyz.shape[1]), int((atom["coordinates"][2])%xyz.shape[0]), get_layer(atom)] = get_density(atom)
             coords.append(xyz)
         return coords, scores
@@ -63,48 +62,49 @@ def get_layer(atom):
     #HARD COPY FROM PAPER REPO
     if atom["chain_type"] == "O":
         if atom["terminal"]:
-            return 8
+            return 7
         else:
-            return 6
+            return 5
     elif atom["chain_type"] == "OXT" and atom["terminal"]:
-        return 8
+        return 7
     elif atom["chain_type"] == "OT2" and atom["terminal"]:
-        return 8
+        return 7
     elif atom["chain_type"] == "N":
-        return 2
+        return 1
     elif atom["chain_type"] == "C":
-        return 9
+        return 8
     elif atom["chain_type"] == "CA":
-        return 11
+        return 10
     else:
         fullName = atom["residue"] + atom["chain_type"]
 
         if fullName == "CYSSG" or fullName == "METSD" or fullName == "MSESE":
-            return 1
+            return 0
         elif fullName == "ASNND2" or fullName == "GLNNE2":
-            return 2
+            return 1
         elif fullName == "HISND1" or fullName == "HISND2" or fullName == "TRPNE1":
-            return 3
+            return 2
         elif fullName == "ARGNH1" or fullName == "ARGNH2" or fullName == "ARGNE":
-            return 4
+            return 3
         elif fullName == "LYSNZ":
-            return 5
+            return 4
         elif fullName == "ACEO" or fullName == "ASDNOD1" or fullName == "GLNOE1":
-            return 6
+            return 5
         elif fullName == "SEROG" or fullName == "THROG1" or fullName == "TYROH":
-            return 7
+            return 6
         elif fullName == "ASPOD1" or fullName == "ASPOD2" or fullName == "GLUOE1" or fullName == "GLUOE2":
-            return 8
+            return 7
         elif fullName == "ARGCZ" or fullName == "ASPCG" or fullName == "GLUCD" or fullName == "ACEC" or fullName == "ASNCG" or fullName == "GLNCD":
-            return 9
+            return 8
         elif fullName == "HISCD2" or fullName == "HISCE1" or fullName == "HISCG" or fullName == "PHECD1" or fullName == "PHECD2" or fullName == "PHECE1" or fullName == "PHECE2" or fullName == "PHECG" or fullName == "PHECZ" or fullName == "TRPCD1" or fullName == "TRPCD2" or fullName == "TRPCE2" or fullName == "TRPCE3" or fullName == "TRPCG" or fullName == "TRPCH2" or fullName == "TRPCZ2" or fullName == "TRPCZ3" or fullName == "TYRCD1" or fullName == "TYRCD2" or fullName == "TYRCE1" or fullName == "TYRCE2" or fullName == "TYRCG" or fullName == "TYRCZ":
-            return 10
+            return 9
         elif fullName == "ALACB" or fullName == "ARGCB" or fullName == "ARGCG" or fullName == "ARGCD" or fullName == "ASNCB" or fullName == "ASPCB" or fullName == "GLNCB" or fullName == "GLNCG" or fullName == "GLUCB" or fullName == "GLUCG" or fullName == "HISCB" or fullName == "ILECB" or fullName == "ILECD1" or fullName == "ILECG1" or fullName == "ILECG2" or fullName == "LEUCB" or fullName == "LEUCD1" or fullName == "LEUCD2" or fullName == "LEUCG" or fullName == "LYSCB" or fullName == "LYSCD" or fullName == "LYSCG" or fullName == "LYSCE" or fullName == "METCB" or fullName == "METCE" or fullName == "METCG" or fullName == "MSECB" or fullName == "MSECE" or fullName == "MSECG" or fullName == "PHECB" or fullName == "PROCB" or fullName == "PROCG" or fullName == "PROCD" or fullName == "SERCB" or fullName == "THRCG2" or fullName == "TYRCB" or fullName == "VALCB" or fullName == "VALCG1" or fullName == "VALCG2" or fullName == "ACECH3" or fullName == "THRCB" or fullName == "CYSCB":
-            return 11
+            return 10
         else:
             return 0
            #print("Invalid atom: " + fullName)
            #raise Exception("LINE DATA ERROR")
+    return -1
 
 
 def get_density(atom):
@@ -321,9 +321,8 @@ def readAndStoreData(image_dir):
 def loadData():
     #TODO implement this with dignity >:l
     readAndStoreData("C:\\Users\\Owrn\\Documents\\gitRepos\\3DCNN_MQA_Python\\src\\ModelsDef\\CASP11Stage1_SCWRL")
-    proteins = pickle.load(open("all_protein_decoy_data.pickle", "rb", -1))
-
-    return ([proteins[1].getData()[0]], proteins[1].getData()[1]), ([proteins[2].getData()[0]], proteins[2].getData()[1])
+    p = pickle.load(open("all_protein_decoy_data.pickle", "rb", -1))
+    return ([p[1].getData()[0]], p[1].getData()[1]), ([p[2].getData()[0]], p[2].getData()[1])
 
 if __name__ == "__main__":
     # Here we call our awesome parser :)
@@ -332,5 +331,3 @@ if __name__ == "__main__":
     # This is to test data loading from the pickle file
     proteins = pickle.load(open("all_protein_decoy_data.pickle", "rb", -1))
     x,y = proteins[0].getData()
-    print(np.array(x).shape)
-    print(np.array(y).shape)
