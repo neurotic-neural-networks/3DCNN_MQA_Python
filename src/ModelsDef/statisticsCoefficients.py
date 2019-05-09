@@ -3,7 +3,6 @@ import tensorflow_probability as tfp
 from scipy.stats import spearmanr, kendalltau
 
 def Pearson(y_true, y_pred):
-
     return tfp.stats.correlation(y_pred, y_true, event_axis=None)
 
 def Spearman(y_true, y_pred):
