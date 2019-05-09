@@ -10,5 +10,5 @@ src/ModelsDef/*.pickle
 src/ModelsDef/*.hdf5
 
 .vscode
-
+CASP11Stage1_SCWRL
 *.pyc
