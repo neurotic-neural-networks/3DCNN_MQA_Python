@@ -1,6 +1,6 @@
 import tensorflow as tf
 
-def brLoss(batch):
+def brLoss(batch, score_threshold = 0.1):
     
     def greaterThanApprox(x, y):
         epsilon = 1E-8
@@ -63,7 +63,7 @@ def brLoss(batch):
                     y_ij = piecewiseFunction1(y_true[i], y_true[j])
 
                     #w_ij = K.tf.cond(K.tf.greater(K.tf.abs(y_true[i] - y_true[j]), K.tf.constant(0.1)), lambda: K.tf.constant(1.0), lambda: K.tf.constant(0.0))
-                    w_ij = piecewiseFunction2(tf.abs(y_true[i] - y_true[j]), tf.constant(0.1))
+                    w_ij = piecewiseFunction2(tf.abs(y_true[i] - y_true[j]), tf.constant(score_threshold))
 
                     L_ij = w_ij * (tf.reduce_max(tf.concat([[0.0], (1.0 - y_ij) * (y_pred[i] - y_pred[j])], axis=0)))
                     #print(L_ij.shape)
