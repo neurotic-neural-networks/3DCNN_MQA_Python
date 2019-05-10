@@ -3,6 +3,7 @@ import pickle
 import re
 import numpy as np
 import math
+from layers_visualization import Plotter, gaussian_blur
 
 
 # This is our Protein class
@@ -46,67 +47,34 @@ class Protein:
         return self.resolution
 
     # Work In Progress. Eventually, this would create a (120,120,120,11) tensor and it's GDT_TS
-    def getData(self, score="gdt_ts", width=20, height=20, depth=20, layers=11):
+    def getData(self, score="gdt_ts", width=20, height=20, depth=20, layers=12):
         coords = []
         scores = []
         for decoy in self.decoys:
             scores.append(decoy[score])
             xyz = np.zeros((width, height, depth, layers))
+            x = []
+            y = []
+            z = []
+            # Getting coordinates
             for atom in decoy["atoms"][0]:
-                #TODO Fix placement
-                xyz[int((atom["coordinates"][0])%xyz.shape[0]), int((atom["coordinates"][1])%xyz.shape[1]), int((atom["coordinates"][2])%xyz.shape[0]), self.get_layer(atom)] = self.get_density(atom)
+                x.append(int((atom["coordinates"][0])))
+                y.append(int((atom["coordinates"][1])))
+                z.append(int((atom["coordinates"][2])))
+            # Normalizing coordinates
+            bx = abs(max(x))+abs(min(x))
+            by = abs(max(y))+abs(min(y))
+            bz = abs(max(z))+abs(min(z))
+            normx = [(float(i)+abs(min(x)))/bx for i in x]
+            normy = [(float(i)+abs(min(y)))/by for i in y]
+            normz = [(float(i)+abs(min(z)))/bz for i in z]
+            # Organizing coordinates
+            for a, b, c in zip(normx, normy, normz):
+                l = self.get_layer(atom)
+                if l != -1:
+                    xyz[int(a), int(b), int(c), l] += self.get_density(atom) ##In case of multiple points in same place it will add the density
             coords.append(xyz)
         return coords, scores
-
-
-def get_layer(atom):
-    #HARD COPY FROM PAPER REPO
-    if atom["chain_type"] == "O":
-        if atom["terminal"]:
-            return 7
-        else:
-            return 5
-    elif atom["chain_type"] == "OXT" and atom["terminal"]:
-        return 7
-    elif atom["chain_type"] == "OT2" and atom["terminal"]:
-        return 7
-    elif atom["chain_type"] == "N":
-        return 1
-    elif atom["chain_type"] == "C":
-        return 8
-    elif atom["chain_type"] == "CA":
-        return 10
-    else:
-        fullName = atom["residue"] + atom["chain_type"]
-
-        if fullName == "CYSSG" or fullName == "METSD" or fullName == "MSESE":
-            return 0
-        elif fullName == "ASNND2" or fullName == "GLNNE2":
-            return 1
-        elif fullName == "HISND1" or fullName == "HISND2" or fullName == "TRPNE1":
-            return 2
-        elif fullName == "ARGNH1" or fullName == "ARGNH2" or fullName == "ARGNE":
-            return 3
-        elif fullName == "LYSNZ":
-            return 4
-        elif fullName == "ACEO" or fullName == "ASDNOD1" or fullName == "GLNOE1":
-            return 5
-        elif fullName == "SEROG" or fullName == "THROG1" or fullName == "TYROH":
-            return 6
-        elif fullName == "ASPOD1" or fullName == "ASPOD2" or fullName == "GLUOE1" or fullName == "GLUOE2":
-            return 7
-        elif fullName == "ARGCZ" or fullName == "ASPCG" or fullName == "GLUCD" or fullName == "ACEC" or fullName == "ASNCG" or fullName == "GLNCD":
-            return 8
-        elif fullName == "HISCD2" or fullName == "HISCE1" or fullName == "HISCG" or fullName == "PHECD1" or fullName == "PHECD2" or fullName == "PHECE1" or fullName == "PHECE2" or fullName == "PHECG" or fullName == "PHECZ" or fullName == "TRPCD1" or fullName == "TRPCD2" or fullName == "TRPCE2" or fullName == "TRPCE3" or fullName == "TRPCG" or fullName == "TRPCH2" or fullName == "TRPCZ2" or fullName == "TRPCZ3" or fullName == "TYRCD1" or fullName == "TYRCD2" or fullName == "TYRCE1" or fullName == "TYRCE2" or fullName == "TYRCG" or fullName == "TYRCZ":
-            return 9
-        elif fullName == "ALACB" or fullName == "ARGCB" or fullName == "ARGCG" or fullName == "ARGCD" or fullName == "ASNCB" or fullName == "ASPCB" or fullName == "GLNCB" or fullName == "GLNCG" or fullName == "GLUCB" or fullName == "GLUCG" or fullName == "HISCB" or fullName == "ILECB" or fullName == "ILECD1" or fullName == "ILECG1" or fullName == "ILECG2" or fullName == "LEUCB" or fullName == "LEUCD1" or fullName == "LEUCD2" or fullName == "LEUCG" or fullName == "LYSCB" or fullName == "LYSCD" or fullName == "LYSCG" or fullName == "LYSCE" or fullName == "METCB" or fullName == "METCE" or fullName == "METCG" or fullName == "MSECB" or fullName == "MSECE" or fullName == "MSECG" or fullName == "PHECB" or fullName == "PROCB" or fullName == "PROCG" or fullName == "PROCD" or fullName == "SERCB" or fullName == "THRCG2" or fullName == "TYRCB" or fullName == "VALCB" or fullName == "VALCG1" or fullName == "VALCG2" or fullName == "ACECH3" or fullName == "THRCB" or fullName == "CYSCB":
-            return 10
-        else:
-            return 0
-           #print("Invalid atom: " + fullName)
-           #raise Exception("LINE DATA ERROR")
-    return -1
-
 
     def get_density(self, atom):
         van_der_waal_radii = {'H' : 1.2, 'C' : 1.7, 'N' : 1.55, 'O' : 1.52,
@@ -119,6 +87,55 @@ def get_layer(atom):
             raise Exception("LINE DATA ERROR")
 
         return pow(math.e, -1 * pow(van_der_waal_radii[atom["chain_type_single"]], 2)/2)
+
+    def get_layer(self, atom):
+        #HARD COPY FROM PAPER REPO
+        if atom["chain_type"] == "O":
+            if atom["terminal"]:
+                return 7
+            else:
+                return 5
+        elif atom["chain_type"] == "OXT" and atom["terminal"]:
+            return 7
+        elif atom["chain_type"] == "OT2" and atom["terminal"]:
+            return 7
+        elif atom["chain_type"] == "N":
+            return 1
+        elif atom["chain_type"] == "C":
+            return 8
+        elif atom["chain_type"] == "CA":
+            return 10
+        else:
+            fullName = atom["residue"] + atom["chain_type"]
+
+            if fullName == "CYSSG" or fullName == "METSD" or fullName == "MSESE":
+                return 0
+            elif fullName == "ASNND2" or fullName == "GLNNE2":
+                return 1
+            elif fullName == "HISND1" or fullName == "HISND2" or fullName == "TRPNE1":
+                return 2
+            elif fullName == "ARGNH1" or fullName == "ARGNH2" or fullName == "ARGNE":
+                return 3
+            elif fullName == "LYSNZ":
+                return 4
+            elif fullName == "ACEO" or fullName == "ASDNOD1" or fullName == "GLNOE1":
+                return 5
+            elif fullName == "SEROG" or fullName == "THROG1" or fullName == "TYROH":
+                return 6
+            elif fullName == "ASPOD1" or fullName == "ASPOD2" or fullName == "GLUOE1" or fullName == "GLUOE2":
+                return 7
+            elif fullName == "ARGCZ" or fullName == "ASPCG" or fullName == "GLUCD" or fullName == "ACEC" or fullName == "ASNCG" or fullName == "GLNCD":
+                return 8
+            elif fullName == "HISCD2" or fullName == "HISCE1" or fullName == "HISCG" or fullName == "PHECD1" or fullName == "PHECD2" or fullName == "PHECE1" or fullName == "PHECE2" or fullName == "PHECG" or fullName == "PHECZ" or fullName == "TRPCD1" or fullName == "TRPCD2" or fullName == "TRPCE2" or fullName == "TRPCE3" or fullName == "TRPCG" or fullName == "TRPCH2" or fullName == "TRPCZ2" or fullName == "TRPCZ3" or fullName == "TYRCD1" or fullName == "TYRCD2" or fullName == "TYRCE1" or fullName == "TYRCE2" or fullName == "TYRCG" or fullName == "TYRCZ":
+                return 9
+            elif fullName == "ALACB" or fullName == "ARGCB" or fullName == "ARGCG" or fullName == "ARGCD" or fullName == "ASNCB" or fullName == "ASPCB" or fullName == "GLNCB" or fullName == "GLNCG" or fullName == "GLUCB" or fullName == "GLUCG" or fullName == "HISCB" or fullName == "ILECB" or fullName == "ILECD1" or fullName == "ILECG1" or fullName == "ILECG2" or fullName == "LEUCB" or fullName == "LEUCD1" or fullName == "LEUCD2" or fullName == "LEUCG" or fullName == "LYSCB" or fullName == "LYSCD" or fullName == "LYSCG" or fullName == "LYSCE" or fullName == "METCB" or fullName == "METCE" or fullName == "METCG" or fullName == "MSECB" or fullName == "MSECE" or fullName == "MSECG" or fullName == "PHECB" or fullName == "PROCB" or fullName == "PROCG" or fullName == "PROCD" or fullName == "SERCB" or fullName == "THRCG2" or fullName == "TYRCB" or fullName == "VALCB" or fullName == "VALCG1" or fullName == "VALCG2" or fullName == "ACECH3" or fullName == "THRCB" or fullName == "CYSCB":
+                return 10
+            else:
+                return 0
+               #print("Invalid atom: " + fullName)
+               #raise Exception("LINE DATA ERROR")
+        return 11
+
 
 
 def readAndStoreData(image_dir):
@@ -320,17 +337,31 @@ def readAndStoreData(image_dir):
         pickle.dump(proteins, f, -1)
 
 def loadData():
-    #TODO implement this with dignity >:l
-    readAndStoreData("C:\\Users\\Owrn\\Documents\\gitRepos\\3DCNN_MQA_Python\\src\\ModelsDef\\CASP11Stage1_SCWRL")
-    p = pickle.load(open("all_protein_decoy_data.pickle", "rb", -1))
-    return ([p[1].getData()[0]], p[1].getData()[1]), ([p[2].getData()[0]], p[2].getData()[1])
+    proteins = pickle.load(open("all_protein_decoy_data.pickle", "rb", -1))
+    train_x, train_y = proteins[0].getData()
+    test_x, test_y = proteins[1].getData()
+    val_x, val_y = proteins[2].getData()
+    return train_x, train_y, test_x, test_y, val_x, val_y
 
 if __name__ == "__main__":
     # Here we call our awesome parser :)
-    #readAndStoreData("CASP11Stage1_SCWRL")
+    #readAndStoreData("D:\\GitProjects\\Investigacion\\data\\CASP11Stage1_SCWRL")
 
     # This is to test data loading from the pickle file
     proteins = pickle.load(open("all_protein_decoy_data.pickle", "rb", -1))
     x,y = proteins[0].getData()
-    print(np.array(x).shape)
-    print(np.array(y).shape)
+    p = Plotter()
+    i = 1
+    p.addplot(x[i][:][:][:][0])
+    p.addplot(x[i][:][:][:][1])
+    p.addplot(x[i][:][:][:][2])
+    p.addplot(x[i][:][:][:][3])
+    p.addplot(x[i][:][:][:][4])
+    p.addplot(x[i][:][:][:][5])
+    p.addplot(x[i][:][:][:][6])
+    p.addplot(x[i][:][:][:][7])
+    p.addplot(x[i][:][:][:][8])
+    p.addplot(x[i][:][:][:][9])
+    p.addplot(x[i][:][:][:][10])
+    p.addplot(x[i][:][:][:][11])
+    p.show()

@@ -1,7 +1,6 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 import tensorflow as tf
-import h5py
 from tensorflow.keras import Sequential
 from tensorflow.keras.layers import Dense, Conv3D, MaxPooling3D, BatchNormalization, Activation, Flatten
 from tensorflow.keras.callbacks import CSVLogger, ModelCheckpoint
@@ -9,6 +8,7 @@ from tensorflow.keras.callbacks import CSVLogger, ModelCheckpoint
 from batchRankingLoss import brLoss
 from evaluationMetric import evalLoss
 from statisticsCoefficients import Pearson, Spearman, Kendall
+from dataParser import loadData, Protein
 
 import numpy as np
 
@@ -21,26 +21,6 @@ epsilon = 1E-8
 learning_rate = 0.0001
 weight_decay = 0.0
 epochs = 10
-
-# Load HDF5 dataset
-with h5py.File('data/dataset-V1.hdf5', 'r') as f:
-    # len ( decoys ) % batchsize = number of elements to ignore at end of list
-    x_train = f['x_train'].value[:]
-    x_train = x_train[:-(len(x_train) % batch_size)]
-    x_val   = f['x_val'].value[:]
-    x_val = x_val[:-(len(x_val) % batch_size)]
-    x_test  = f['x_test'].value[:]
-    x_test = x_test[:-(len(x_test) % batch_size)]
-    y_train = f['y_train'].value[:]
-    y_train = y_train[:-(len(y_train) % batch_size)]
-    y_val   = f['y_val'].value[:]
-    y_val = y_val[:-(len(y_val) % batch_size)]
-    y_test  = f['y_test'].value[:]
-    y_test = y_test[:-(len(y_test) % batch_size)]
-
-
-print(y_train.shape, y_test.shape)
-
 
 model = Sequential()
 
@@ -71,11 +51,10 @@ model.add(Flatten())
 
 model.add(Dense(64))
 model.add(Activation('relu'))
-model.add(Dense(11))
+model.add(Dense(1))
 model.add(Activation("sigmoid"))
 
 model.summary()
-
 
 model.compile(
     optimizer= tf.keras.optimizers.Adam(
@@ -91,6 +70,9 @@ model.compile(
 csv_logger = CSVLogger("model_history_log.csv", append=True)
 checkpoint = ModelCheckpoint("model.hdf5", monitor='val_loss', verbose=1, save_best_only=False, mode='min')
 
+print("Loading data...")
+x_train, y_train, x_test, y_test, x_val, y_val = loadData()
+print("Fitting data...")
 model.fit(x_train, y_train,
     epochs=epochs,
     batch_size=batch_size,
@@ -98,10 +80,10 @@ model.fit(x_train, y_train,
     callbacks=[csv_logger, checkpoint]
 )
 
-
-test = np.random.random((1,20,20,20,11))
-prediction = model.predict(test)
+prediction = model.predict(x_test)
 print(prediction)
+print("...................")
+print(y_test)
 
 '''
 ORIGINAL UNCAHNGED MODEL. DON'T DELETE
