@@ -1,11 +1,14 @@
-import keras
-from keras.models import Sequential
-from keras.layers import Dense, Conv3D, MaxPooling3D, BatchNormalization, Activation, Flatten
+from __future__ import absolute_import, division, print_function, unicode_literals
+
+import tensorflow as tf
+import h5py
+from tensorflow.keras import Sequential
+from tensorflow.keras.layers import Dense, Conv3D, MaxPooling3D, BatchNormalization, Activation, Flatten
+from tensorflow.keras.callbacks import CSVLogger, ModelCheckpoint
 
 from batchRankingLoss import brLoss
 from evaluationMetric import evalLoss
-from dataGenerator import generateData
-from dataParser import loadData
+from statisticsCoefficients import Pearson, Spearman, Kendall
 
 import numpy as np
 
@@ -19,8 +22,25 @@ learning_rate = 0.0001
 weight_decay = 0.0
 epochs = 10
 
-#(x_train, y_train), (x_test, y_test) = generateData()
-(x_train, y_train), (x_test, y_test) = loadData()
+# Load HDF5 dataset
+with h5py.File('data/dataset-V1.hdf5', 'r') as f:
+    # len ( decoys ) % batchsize = number of elements to ignore at end of list
+    x_train = f['x_train'].value[:]
+    x_train = x_train[:-(len(x_train) % batch_size)]
+    x_val   = f['x_val'].value[:]
+    x_val = x_val[:-(len(x_val) % batch_size)]
+    x_test  = f['x_test'].value[:]
+    x_test = x_test[:-(len(x_test) % batch_size)]
+    y_train = f['y_train'].value[:]
+    y_train = y_train[:-(len(y_train) % batch_size)]
+    y_val   = f['y_val'].value[:]
+    y_val = y_val[:-(len(y_val) % batch_size)]
+    y_test  = f['y_test'].value[:]
+    y_test = y_test[:-(len(y_test) % batch_size)]
+
+
+print(y_train.shape, y_test.shape)
+
 
 model = Sequential()
 
@@ -56,26 +76,26 @@ model.add(Activation("sigmoid"))
 
 model.summary()
 
+
 model.compile(
-    optimizer=keras.optimizers.Adam(
+    optimizer= tf.keras.optimizers.Adam(
         lr=learning_rate,
         beta_1=beta1,
         beta_2=beta2,
         epsilon=epsilon,
         decay=weight_decay),
-    loss=brLoss(decoys),
-    metrics=[evalLoss]
+    loss=brLoss(batch_size),
+    metrics=[evalLoss, Pearson, Spearman, Kendall]
 )
 
-print(np.array(x_train).shape)
-print(np.array(y_train).shape)
-print(np.array(x_test).shape)
-print(np.array(y_test).shape)
+csv_logger = CSVLogger("model_history_log.csv", append=True)
+checkpoint = ModelCheckpoint("model.hdf5", monitor='val_loss', verbose=1, save_best_only=False, mode='min')
 
 model.fit(x_train, y_train,
     epochs=epochs,
     batch_size=batch_size,
-    validation_data=(x_test, y_test)
+    validation_data=(x_val, y_val),
+    callbacks=[csv_logger, checkpoint]
 )
 
 

@@ -53,7 +53,8 @@ class Protein:
             scores.append(decoy[score])
             xyz = np.zeros((width, height, depth, layers))
             for atom in decoy["atoms"][0]:
-                xyz[int((atom["coordinates"][0])%xyz.shape[0]), int((atom["coordinates"][1])%xyz.shape[1]), int((atom["coordinates"][2])%xyz.shape[0]), get_layer(atom)] = get_density(atom)
+                #TODO Fix placement
+                xyz[int((atom["coordinates"][0])%xyz.shape[0]), int((atom["coordinates"][1])%xyz.shape[1]), int((atom["coordinates"][2])%xyz.shape[0]), self.get_layer(atom)] = self.get_density(atom)
             coords.append(xyz)
         return coords, scores
 
@@ -107,17 +108,17 @@ def get_layer(atom):
     return -1
 
 
-def get_density(atom):
-    van_der_waal_radii = {'H' : 1.2, 'C' : 1.7, 'N' : 1.55, 'O' : 1.52,
-    'S' : 1.8, 'D' : 1.2, 'F' : 1.47, 'CL' : 1.75, 'BR' : 1.85, 'P' : 1.8,
-    'I' : 1.98, 'E' : 1.0, 'X':1.0 , '': 0.0}
-    # Source:https://physlab.lums.edu.pk/images/f/f6/Franck_ref2.pdf
+    def get_density(self, atom):
+        van_der_waal_radii = {'H' : 1.2, 'C' : 1.7, 'N' : 1.55, 'O' : 1.52,
+        'S' : 1.8, 'D' : 1.2, 'F' : 1.47, 'CL' : 1.75, 'BR' : 1.85, 'P' : 1.8,
+        'I' : 1.98, 'E' : 1.0, 'X':1.0 , '': 0.0}
+        # Source:https://physlab.lums.edu.pk/images/f/f6/Franck_ref2.pdf
 
-    if atom["chain_type_single"] not in van_der_waal_radii:
-        print("Invalid atom: " + atom["chain_type_single"])
-        raise Exception("LINE DATA ERROR")
+        if atom["chain_type_single"] not in van_der_waal_radii:
+            print("Invalid atom: " + atom["chain_type_single"])
+            raise Exception("LINE DATA ERROR")
 
-    return pow(math.e, -1 * pow(van_der_waal_radii[atom["chain_type_single"]], 2)/2)
+        return pow(math.e, -1 * pow(van_der_waal_radii[atom["chain_type_single"]], 2)/2)
 
 
 def readAndStoreData(image_dir):
@@ -331,3 +332,5 @@ if __name__ == "__main__":
     # This is to test data loading from the pickle file
     proteins = pickle.load(open("all_protein_decoy_data.pickle", "rb", -1))
     x,y = proteins[0].getData()
+    print(np.array(x).shape)
+    print(np.array(y).shape)
